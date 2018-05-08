@@ -13,11 +13,18 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
+    let defaults: UserDefaults = UserDefaults.standard
+    
     var itemArray: [String] = ["Find Mike", "Buy Eggos", "Destroy Demogorgon"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        //If let to check wether there is an array for that key and if so assign it to our itemArray!
+        if let items = defaults.array(forKey: "ToDoListArray") as! [String] {
+            itemArray = items
+        }
+        
     }
 
     //MARK - Tableview Datasource methods
@@ -61,6 +68,7 @@ class TodoListViewController: UITableViewController {
             (action) in
             //What will happen once the user clicks the Add item button on our UIAlert
             self.itemArray.append(textField.text!) //Force unwrap. Textfield.text is never nil. When nothing is entered it is "" (empty string). Normally we would prevent adding an empty string!!
+            self.defaults.set(self.itemArray, forKey: "ToDoListArray") //Save our itemArray into the defaults
             self.tableView.reloadData()
             
         }
