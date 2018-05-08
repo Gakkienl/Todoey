@@ -13,7 +13,7 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
-    let itemArray: [String] = ["Find Mike", "Buy Eggos", "Destroy Demogorgon"]
+    var itemArray: [String] = ["Find Mike", "Buy Eggos", "Destroy Demogorgon"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,8 +45,39 @@ class TodoListViewController: UITableViewController {
             cell?.accessoryType = .checkmark
         }
         
+    }
+    
+    
+    //MARK - Add new items
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        //We need a UITextFieldItem within the scope of the addButtonPressed method to be able to set it from within a closure further along, so we can
+        //access it outside the closere!
+        var textField: UITextField = UITextField()
+        
+        let alert: UIAlertController = UIAlertController(title: "Add new Todoey item", message: "", preferredStyle: .alert)
+        
+        let action: UIAlertAction = UIAlertAction(title: "Add item", style: UIAlertActionStyle.default) { //closure
+            (action) in
+            //What will happen once the user clicks the Add item button on our UIAlert
+            self.itemArray.append(textField.text!) //Force unwrap. Textfield.text is never nil. When nothing is entered it is "" (empty string). Normally we would prevent adding an empty string!!
+            self.tableView.reloadData()
+            
+        }
+        
+        alert.addTextField { //closure
+            (alertTextField) in
+            alertTextField.placeholder = "Create new item"
+            textField = alertTextField //Assign our local variable to the one we create within thos closure!
+        }
+        
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
+        
         
     }
+    
+    
 
     
 }
