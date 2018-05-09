@@ -15,13 +15,26 @@ class TodoListViewController: UITableViewController {
     
     let defaults: UserDefaults = UserDefaults.standard
     
-    var itemArray: [String] = ["Find Mike", "Buy Eggos", "Destroy Demogorgon"]
+    var itemArray: [Item] = [Item]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+
+        let newItem: Item = Item()
+        newItem.titel = "Find Mike"
+        itemArray.append(newItem)
+
+        let newItem2: Item = Item()
+        newItem2.titel = "Find Mike"
+        itemArray.append(newItem2)
+
+        let newItem3: Item = Item()
+        newItem3.titel = "Find Mike"
+        itemArray.append(newItem3)
+        
+        
         //If let to check wether there is an array for that key and if so assign it to our itemArray!
-        if let items = defaults.array(forKey: "ToDoListArray") as! [String] {
+        if let items = defaults.array(forKey: "ToDoListArray") as! [item] {
             itemArray = items
         }
         
@@ -35,7 +48,14 @@ class TodoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
-        cell.textLabel?.text = itemArray[indexPath.row]
+        
+        let item = itemArray[indexPath.row]
+        cell.textLabel?.text = item.titel
+        
+        //Ternary operator >
+        //value = condition ? valueIfTrue : valueIffalse
+        //Reads: cell.accssoryType will be .checkmark when item.done is true, else .none!
+        cell.accessoryType = item.done ? .checkmark : .none
         
         return cell
         
@@ -43,14 +63,13 @@ class TodoListViewController: UITableViewController {
     
     //MARK - TableView Delegate methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        //print(itemArray[indexPath.row])
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done // ! means "not", ie the opposite. It's a toggle!
+        
+        //make sure the changes are reflected on screen
+        //The reloadDate() method forces the the tableview to call the datasource methods again!
+        tableView.reloadData()
+        
         tableView.deselectRow(at: indexPath, animated: true)
-        let cell = tableView.cellForRow(at: indexPath)
-        if cell?.accessoryType == .checkmark {
-            cell?.accessoryType = .none
-        } else {
-            cell?.accessoryType = .checkmark
-        }
         
     }
     
@@ -67,7 +86,10 @@ class TodoListViewController: UITableViewController {
         let action: UIAlertAction = UIAlertAction(title: "Add item", style: UIAlertActionStyle.default) { //closure
             (action) in
             //What will happen once the user clicks the Add item button on our UIAlert
-            self.itemArray.append(textField.text!) //Force unwrap. Textfield.text is never nil. When nothing is entered it is "" (empty string). Normally we would prevent adding an empty string!!
+            let newItem: Item = Item()
+            newItem.titel = textField.text!
+            
+            self.itemArray.append(newItem)
             self.defaults.set(self.itemArray, forKey: "ToDoListArray") //Save our itemArray into the defaults
             self.tableView.reloadData()
             
