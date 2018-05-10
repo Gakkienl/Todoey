@@ -8,7 +8,8 @@
 
 import Foundation
 
-class Item {
+//conform to protocol Codable. For a class to be Codable. All properties must be of standard types!
+class Item: Codable {
     var titel: String =  ""
     var done: Bool = false
    
