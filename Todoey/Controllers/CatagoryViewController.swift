@@ -7,13 +7,14 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CatagoryViewController: UITableViewController {
     
     //Properties
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    var categoriesArray: [Category] = [Category]()
+    let realm = try! Realm() //Force try, perfecrly safe in this case ...
+    
+    var categories: Results<Category>? //auto updating container! No need for manual add/delete/update... Made an optional!
 
     //MARK: - ViewDidLoad
     override func viewDidLoad() {
@@ -35,11 +36,10 @@ class CatagoryViewController: UITableViewController {
         let action: UIAlertAction = UIAlertAction(title: "Add category", style: UIAlertActionStyle.default) { //closure
             (action) in
             
-            let newCategory: Category = Category(context: self.context)
+            let newCategory: Category = Category()
             newCategory.name = textField.text!
             
-            self.categoriesArray.append(newCategory)
-            self.saveCategories()
+            self.save(category: newCategory)
             
         }
         
@@ -57,7 +57,7 @@ class CatagoryViewController: UITableViewController {
     
     //MARK: - Tableview Datasource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoriesArray.count
+        return categories?.count ?? 1 //categoriesArray is an optional and thus maybe nill. ?? 1 is the Nil Coalescing Operater, saying when nil return 1
         
     }
 
@@ -65,8 +65,8 @@ class CatagoryViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
-        let category = categoriesArray[indexPath.row]
-        cell.textLabel?.text = category.name
+        
+        cell.textLabel?.text = categories?[indexPath.row].name ?? "No categories yet!" // If catgoriesArray is nil return the text provided!
         
         return cell
         
@@ -83,7 +83,7 @@ class CatagoryViewController: UITableViewController {
         let destinationVC = segue.destination as! TodoListViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categoriesArray[indexPath.row] //set a property in the selected (TodoListViewController) VC!
+            destinationVC.selectedCategory = categories?[indexPath.row] //set a property in the selected (TodoListViewController) VC!
             
             
         }
@@ -94,10 +94,12 @@ class CatagoryViewController: UITableViewController {
     
     
     //MARK: - Data Manipulation Methods
-    func saveCategories() {
+    func save(category: Category) {
         
         do {
-            try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         } catch {
             print("Error saving context: \(error)")
         }
@@ -110,12 +112,8 @@ class CatagoryViewController: UITableViewController {
     
     //When called without a request, it defaults to all Categories (Category.fetchRequest())
     //Note:External parameter with and internal paramater request!
-    func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
-        do {
-            categoriesArray = try context.fetch(request)
-        } catch {
-            print("Error fetching categories from context: \(error)")
-        }
+    func loadCategories() {
+        categories = realm.objects(Category.self)
         
         tableView.reloadData()
         
